@@ -1,0 +1,80 @@
+{% extends "collections_base.html" %}
+{% block title %}Collections{% endblock %}
+
+{% block content %}
+
+{% if message  %}
+<div class="alert alert-secondary" role="alert">
+    <p>{{ message }}</p>
+</div>
+{% endif %}
+
+
+<div class="container col-lg-4">
+    <div class="  collections-list">
+
+    </div>
+</div>
+
+<script>
+    $(document).ready(function(){
+
+        //load a list of collections
+        $.ajax({
+            url:"/collections/get",
+            type:"GET",
+            dataType: "json",
+            contentType: "application/json",
+            success: function(resp){
+                fillCollectionList(resp);
+            },
+            error: function(xhr){
+                console.error(xhr);
+            }
+        });
+
+        // //add a new collection
+        // $.ajax({
+        //     url: "/collections/add",
+        //     type:"POST",
+        //     dataType: "json",
+        //     contentType: "application/json; charset=utf-8",
+        //     data: JSON.stringify({
+        //         name: "One"
+        //     }),
+        //     success: function(resp) {
+        //         console.log("Added a new collection");
+        //     },
+        //     error: function(xhr){
+        //         console.error(xhr);
+        //     }
+
+        // })
+    });
+
+    function fillCollectionList(json){
+        for(let i in json){
+            let collection = json[i];
+            let name = collection.name;
+            let _id = collection._id;
+            let li = `
+                <div  id="${_id}">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h2 class="card-title"> ${name} </h2>
+                            <br/>
+                            <button class="btn btn-primary">Open</button>
+                            <button class="btn btn-primary">Rename</button>
+                            <button class="btn btn-primary">Delete</button>
+                        </div>
+                    </div>
+                </div>
+                <br/>
+            `;
+            $(".collections-list").append(li);
+        }
+    }
+
+</script>
+
+{% endblock %}

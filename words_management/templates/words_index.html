@@ -1,0 +1,164 @@
+{% extends "words_base.html" %}
+{% block title %}Register System{% endblock %}
+
+{% block content %}
+
+{% if message  %}
+    <div class="alert alert-secondary" role="alert">
+        <p>{{ message }}</p>
+    </div>
+{% endif %}
+<div class="collection-id" style="display: none;">all</div>
+
+
+<div class="container col-8">
+    <table class="words-table table table-dark table-striped">
+        <thead>
+            <tr>
+                <th >Word</th>
+                <th >Translation</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- <tr id="349578394">
+                <td ><input type="text" class="word-input word form-control form-control-sm" value="way out"/></td>
+                <td ><input type="text" class="word-input translation form-control form-control-sm" value="way out"/></td>
+                <td><a href="#" class="btn btn-primary btn-sm remove-button" role="button">Remove</a></td>
+            </tr>
+            <tr id="349578394">
+                <td ><input type="text" class="word-input word  form-control form-control-sm" value="way out"/></td>
+                <td ><input type="text" class="word-input translation form-control form-control-sm" value="way out"/></td>
+                <td><a href="#" class="btn btn-primary btn-sm remove-button" role="button">Remove</a></td>
+            </tr>
+            <tr id="349578394">
+                <td ><input type="text" class="word-input word form-control form-control-sm" value="way out"/></td>
+                <td ><input type="text" class="word-input translation form-control form-control-sm" value="way out"/></td>
+                <td><a href="#" class="btn btn-primary btn-sm remove-button" role="button">Remove</a></td>
+            </tr>
+             -->
+        </tbody>
+    </table>
+    <button class="btn btn-primary add-word-button">New word</button>
+</div>
+
+<script>
+    $(document).ready(function(){
+
+        //load words
+        $.ajax({
+            url: "/words/getAll",
+            type: "get",
+            data: {},
+            success: function(resp){
+                console.log(resp)
+                json = JSON.parse(resp)
+                for(let e in json){
+                    let word = json[e];
+                    console.log(word)
+                    let tr = `
+                        <tr id="${word._id}">
+                            <td ><input type="text" class="word-input word form-control form-control-sm" value="${word.word}"/></td>
+                            <td ><input type="text" class="word-input translation form-control form-control-sm" value="${word.translation}"/></td>
+                            <td><a href="#" class="btn btn-primary btn-sm remove-button" role="button">Remove</a></td>
+                        </tr>
+                    `
+                    $('.words-table > tbody').append(tr)
+                }
+
+                initWordsRemovingButtons()
+                initWordsUpdatingFields()
+                initAddWordButton()
+            },
+            error: function(){
+                console.error("Something went wrong while loading words")
+            }
+        })
+
+        
+
+        function initAddWordButton(){
+            let objectId = (m = Math, d = Date, h = 16, s = s => m.floor(s).toString(h)) =>
+            s(d.now() / 1000) + ' '.repeat(h).replace("/./g", () => s(m.random() * h))
+
+            $(".add-word-button").click(function(e){
+                let tr = `
+                        <tr id="${objectId()}">
+                            <td><input type="text" class="word-input word form-control form-control-sm" value=""/></td>
+                            <td><input type="text" class="word-input translation form-control form-control-sm" value=""/></td>
+                            <td><a href="#" class="btn btn-primary btn-sm remove-button" role="button">Remove</a></td>
+                        </tr>
+                    `
+                $('.words-table > tbody').append(tr);
+                initWordsUpdatingFields()
+                initWordsRemovingButtons()
+            })
+        }
+
+        function initWordsUpdatingFields(){
+            //edit a word
+            var timer;
+            var interval = 2000;
+            $(".word-input").unbind();
+            $(".word-input").on('keyup',function(){
+                clearTimeout(timer);
+                timer = setTimeout(doneTyping, interval, $(this).parent().parent());
+            });
+        }
+
+        function doneTyping(tr){
+            var word = $(tr).find('.word').val();
+            var translation = $(tr).find('.translation').val();
+            var id = tr.attr("id");
+            var collection = $(".collection-id").text();
+            console.log(collection);
+            console.log("adding/updating a word " + id + " " + word);
+            $.ajax({
+                url: "/words/update",
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    id,
+                    word,
+                    translation,
+                    collection
+                }),
+                success: function(resp){
+                    console.log("successfuly updated " + id);
+                },
+                error: function(err){
+                    console.error("error while updating " + id + " " + err);
+                }
+            });
+        }
+
+        
+        function initWordsRemovingButtons(){
+            //remove a word
+            $('.remove-button').unbind();
+            $('.remove-button').click(function(e){
+                var tr = $(this).parent().parent();
+                var id = tr.attr("id");
+                removeWordReq(id,tr);
+            })
+        }
+
+        function removeWordReq(id,tr){
+            if(id!=null){
+                $.ajax({
+                    url: `/words/delete/${id}`,
+                    type: "GET",
+                    success: function(resp){
+                        console.log("The word "+id+ " has been removed");
+                        tr.remove();
+                    },
+                    error: function(xhr){
+                        console.error("Cannot remove the word "+id);;
+                    }
+                });
+            }
+        }
+    });
+</script>
+{% endblock %}
